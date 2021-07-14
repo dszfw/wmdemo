@@ -65,7 +65,7 @@ public class EmployeeController {
         }
 
         boolean stateChanged = stateMachineService.changeState(employeeId, event);
-        if (stateChanged) {
+        if (!stateChanged) {
             return badRequest(String.format("event %s is not possible for %s state", event,
                 stateMachineService.getCurrentState(employeeId)));
         }
