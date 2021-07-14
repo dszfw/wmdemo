@@ -8,18 +8,19 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.StateMachineEventResult;
+import org.springframework.statemachine.StateMachineEventResult.ResultType;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.persist.StateMachinePersister;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 @Service
-public class EmployeeStateMachineServiceImpl implements EmployeeStateMachineService {
+public class EmployeeStateServiceImpl implements EmployeeStateService {
 
     private final StateMachineFactory<EmployeeState, EmployeeEvent> stateMachineFactory;
     private final StateMachinePersister<EmployeeState, EmployeeEvent, String> stateMachinePersister;
 
-    public EmployeeStateMachineServiceImpl(
+    public EmployeeStateServiceImpl(
         StateMachineFactory<EmployeeState, EmployeeEvent> stateMachineFactory,
         StateMachinePersister<EmployeeState, EmployeeEvent, String> stateMachinePersister) {
         this.stateMachineFactory = stateMachineFactory;
@@ -27,7 +28,7 @@ public class EmployeeStateMachineServiceImpl implements EmployeeStateMachineServ
     }
 
     @Override
-    public StateMachineEventResult<EmployeeState, EmployeeEvent> changeState(Long employeeId,
+    public boolean changeState(Long employeeId,
         EmployeeEvent event) {
         StateMachine<EmployeeState, EmployeeEvent> stateMachine =
             restoreStateMachine(employeeId.toString());
@@ -38,7 +39,7 @@ public class EmployeeStateMachineServiceImpl implements EmployeeStateMachineServ
                 .build());
 
         persistStateMachine(stateMachine, employeeId.toString());
-        return result;
+        return result.getResultType() == ResultType.ACCEPTED;
     }
 
     @Override

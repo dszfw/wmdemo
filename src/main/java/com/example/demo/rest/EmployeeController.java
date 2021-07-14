@@ -3,17 +3,14 @@ package com.example.demo.rest;
 import com.example.demo.dto.ErrorResponseDto;
 import com.example.demo.model.Employee;
 import com.example.demo.service.EmployeeService;
-import com.example.demo.service.EmployeeStateMachineServiceImpl;
+import com.example.demo.service.EmployeeStateServiceImpl;
 import com.example.demo.statemachine.EmployeeEvent;
-import com.example.demo.statemachine.EmployeeState;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
-import org.springframework.statemachine.StateMachineEventResult;
-import org.springframework.statemachine.StateMachineEventResult.ResultType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/employees")
 public class EmployeeController {
 
-    private final EmployeeStateMachineServiceImpl stateMachineService;
+    private final EmployeeStateServiceImpl stateMachineService;
     private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeStateMachineServiceImpl stateMachineService,
+    public EmployeeController(EmployeeStateServiceImpl stateMachineService,
         EmployeeService employeeService) {
         this.stateMachineService = stateMachineService;
         this.employeeService = employeeService;
@@ -67,9 +64,8 @@ public class EmployeeController {
             return badRequest("invalid id provided");
         }
 
-        StateMachineEventResult<EmployeeState, EmployeeEvent> result =
-            stateMachineService.changeState(employeeId, event);
-        if (result.getResultType() == ResultType.DENIED) {
+        boolean stateChanged = stateMachineService.changeState(employeeId, event);
+        if (stateChanged) {
             return badRequest(String.format("event %s is not possible for %s state", event,
                 stateMachineService.getCurrentState(employeeId)));
         }
